@@ -26,7 +26,7 @@ export const getOne: RequestHandler = async (req, res) => {
   });
 };
 
-export const create: RequestHandler = async (req, res) => {
+export const create: RequestHandler = async (req, res, next) => {
   const {
     airport_departure_code,
     airport_arrival_code,
@@ -43,19 +43,23 @@ export const create: RequestHandler = async (req, res) => {
   if (return_date && return_date <= departure_date) 
     return res.status(400).json({message: "Return date must be after departure date"});
 
-  const flight = await Flight.create({
-    airport_departure_code,
-    airport_arrival_code,
-    departure_date,
-    return_date,
-  });
-
-  res.status(201).json({
-    id: flight._id,
-  });
+  try {
+    const flight = await Flight.create({
+      airport_departure_code,
+      airport_arrival_code,
+      departure_date,
+      return_date,
+    });
+  
+    res.status(201).json({
+      id: flight._id,
+    });
+  } catch (error) {
+    next(new Error("Could not create flight"));
+  }
 };
 
-export const updateOne: RequestHandler = async (req, res) => {
+export const updateOne: RequestHandler = async (req, res, next) => {
   const {
     airport_departure_code,
     airport_arrival_code,
@@ -72,20 +76,28 @@ export const updateOne: RequestHandler = async (req, res) => {
   if (return_date && return_date <= departure_date) 
     return res.status(400).json({message: "Return date must be after departure date"});
 
-  const updatedFlight = await Flight.findByIdAndUpdate(
-    req.params.id,
-    {
+  try {
+    const updatedFlight = await Flight.findByIdAndUpdate(
+      req.params.id,
+      {
         airport_departure_code,
         airport_arrival_code,
         departure_date,
         return_date,
       },
-    { new: true },
-  );
-  res.status(200).json(updatedFlight);
+      { new: true },
+    );
+    res.status(200).json(updatedFlight);
+  } catch (error) {
+    next(new Error("Could not update flight info"));
+  }
 };
 
-export const deleteOne: RequestHandler = async (req, res) => {
-  const deletedFlight = await Flight.findByIdAndDelete(req.params.id);
-  res.status(200).json({ ...deletedFlight, message: "Deletion successful" });
+export const deleteOne: RequestHandler = async (req, res, next) => {
+  try {
+    const deletedFlight = await Flight.findByIdAndDelete(req.params.id);
+    res.status(200).json({ ...deletedFlight, message: "Deletion successful" });  
+  } catch (error) {
+    next(new Error("Could not delete flight"));
+  }
 };
