@@ -2,6 +2,7 @@ import express, { Request, Response, NextFunction } from "express";
 import dotenv from "dotenv";
 import connectDB from "@config/db";
 import flightRouter from "@routes/flight";
+import userRouter from "@routes/user";
 
 const app = express();
 dotenv.config();
@@ -13,6 +14,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Routes
 app.use("/flights", flightRouter);
+app.use("/users", userRouter);
 
 // Error handling middleware
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
