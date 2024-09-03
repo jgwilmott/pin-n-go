@@ -2,20 +2,22 @@ import User from "@models/user";
 import { RequestHandler } from "express";
 
 export const register: RequestHandler = async (req, res, next) => {
-  const { username, password } = req.body;
-  if (password.length < 6)
+  const { username, password, role } = req.body;
+  if (password!.length < 6)
     return res
       .status(400)
       .json({ message: "Password must have a minimum of 6 characters" });
 
   try {
-    const user = await User.create({
+    const user = new User({
       username,
-      password,
+      role,
     });
 
+    user.setPassword(password as string);
+    const registeredUser = await user.save();
     res.status(201).json({
-      id: user._id,
+      id: registeredUser._id,
     });
   } catch (error) {
     next(new Error("Could not create user"));
@@ -28,16 +30,21 @@ export const login: RequestHandler = async (req, res, next) => {
     if (!username || !password)
       return res.status(400).json({ message: "Incomplete credentials" });
 
-    const user = await User.findOne({ username, password });
+    const user = await User.findOne({ username });
     if (!user)
-      res.status(401).json({
+      return res.status(401).json({
         message: "Login failed – user not found",
       });
-    else
-      res.status(200).json({
-        message: "Login successful",
-        user,
+
+    if (!user.passwordIsValid(password as string))
+      return res.status(401).json({
+        message: "Login failed – password is incorrect",
       });
+
+    res.status(200).json({
+      message: "Login successful",
+      user,
+    });
   } catch (error) {
     next(new Error("Could not login"));
   }
