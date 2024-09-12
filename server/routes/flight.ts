@@ -5,11 +5,12 @@ import {
   getFlight,
   updateFlight,
 } from "@controllers/flight";
+import { basicUserAuth } from "@middleware/auth";
 const router = express.Router();
 
-router.get("/:id", getFlight);
-router.post("/", addFlight);
-router.patch("/:id", updateFlight);
-router.delete("/:id", deleteFlight);
+router.get("/:id", basicUserAuth, getFlight);
+router.post("/", basicUserAuth, addFlight);
+router.patch("/:id", basicUserAuth, updateFlight);
+router.delete("/:id", basicUserAuth, deleteFlight);
 
 export default router;

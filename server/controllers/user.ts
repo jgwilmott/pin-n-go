@@ -1,4 +1,5 @@
 import User from "@models/user";
+import { sign as generateJWT } from "jsonwebtoken";
 import { RequestHandler } from "express";
 
 export const register: RequestHandler = async (req, res, next) => {
@@ -16,6 +17,20 @@ export const register: RequestHandler = async (req, res, next) => {
 
     user.setPassword(password as string);
     const registeredUser = await user.save();
+
+    const maxAge = 3 * 60 * 60; // 3hrs in sec
+    const token = generateJWT(
+      {id: registeredUser._id, username, role: registeredUser.role},
+      process.env.JWT_SECRET!,
+      {
+        expiresIn: maxAge
+      }
+    );
+
+    res.cookie("jwt", token, {
+      httpOnly: true,
+      maxAge: maxAge * 1000 // 3hrs in ms
+    });
     res.status(201).json({
       id: registeredUser._id,
     });
@@ -41,6 +56,19 @@ export const login: RequestHandler = async (req, res, next) => {
         message: "Login failed – password is incorrect",
       });
 
+    const maxAge = 3 * 60 * 60; // 3hrs in sec
+    const token = generateJWT(
+      {id: user._id, username, role: user.role},
+      process.env.JWT_SECRET!,
+      {
+        expiresIn: maxAge
+      }
+    );
+
+    res.cookie("jwt", token, {
+      httpOnly: true,
+      maxAge: maxAge * 1000 // 3hrs in ms
+    });
     res.status(200).json({
       message: "Login successful",
       user,
