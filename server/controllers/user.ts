@@ -2,6 +2,21 @@ import User from "@models/user";
 import { sign as generateJWT } from "jsonwebtoken";
 import { RequestHandler } from "express";
 
+export const getUserFlights: RequestHandler = async (req, res) => {
+  const { auth_user } = req.body;
+  const { id } = req.params;
+  if (auth_user.id !== id)
+    return res.status(400).json({message: "Cannot get flights from another user"});
+
+  const user = await User.findById(id)?.populate("flights");
+  if (!user) 
+    return res.status(404).json({message: "User not found"});
+
+  res.status(200).json({
+    flights: user.flights
+  });
+};
+
 export const register: RequestHandler = async (req, res, next) => {
   const { username, password, role } = req.body;
   if (password!.length < 6)
@@ -82,7 +97,7 @@ export const updateUserRole: RequestHandler = async (req, res, next) => {
   const { role } = req.body;
   try {
     if (role !== "admin")
-      return res.status(401).json({ message: "User is not an admin" });
+      return res.status(400).json({ message: "Role is not admin" });
 
     const user = await User.findById(req.params.id);
     if (user!.role === "admin")
