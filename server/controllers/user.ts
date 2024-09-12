@@ -101,7 +101,7 @@ export const deleteUser: RequestHandler = async (req, res, next) => {
     const deletedUser = await User.findByIdAndDelete(req.params.id);
     res
       .status(200)
-      .json({ ...deletedUser, message: "User deletion successful" });
+      .json({ message: "User deletion successful", ...deletedUser});
   } catch (error) {
     next(new Error("Could not delete user"));
   }

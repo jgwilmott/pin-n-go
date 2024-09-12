@@ -100,7 +100,7 @@ export const updateFlight: RequestHandler = async (req, res, next) => {
 export const deleteFlight: RequestHandler = async (req, res, next) => {
   try {
     const deletedFlight = await Flight.findByIdAndDelete(req.params.id);
-    res.status(200).json({ ...deletedFlight, message: "Deletion successful" });
+    res.status(200).json({ message: "Deletion successful", ...deletedFlight});
   } catch (error) {
     next(new Error("Could not delete flight"));
   }
