@@ -1,4 +1,4 @@
-import { Model, Schema, model } from "mongoose";
+import { Model, Schema, Types, model } from "mongoose";
 import { pbkdf2Sync as deriveKeySync, randomBytes } from "crypto";
 
 interface IUser {
@@ -6,6 +6,7 @@ interface IUser {
   role: "basic" | "admin";
   hash: String;
   salt: String;
+  flights: [Types.ObjectId];
 }
 
 interface IUserMethods {
@@ -20,6 +21,7 @@ const userSchema = new Schema<IUser, UserModel, IUserMethods>({
   role: { type: String, default: "basic", required: true },
   hash: String,
   salt: String,
+  flights: [{type: Schema.ObjectId, ref: "Flight"}]
 });
 
 userSchema.method("setPassword", function setPassword(password: string) {

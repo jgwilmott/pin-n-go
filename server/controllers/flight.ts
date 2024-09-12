@@ -1,4 +1,5 @@
 import Flight from "@models/flight";
+import User from "@models/user";
 import { isAirportCode } from "@utils/validate";
 import { RequestHandler } from "express";
 
@@ -32,6 +33,7 @@ export const addFlight: RequestHandler = async (req, res, next) => {
     airport_arrival_code,
     departure_date,
     return_date,
+    auth_user
   } = req.body;
 
   if (!isAirportCode(airport_departure_code))
@@ -46,12 +48,20 @@ export const addFlight: RequestHandler = async (req, res, next) => {
       .json({ message: "Return date must be after departure date" });
 
   try {
+    const user = await User.findById(auth_user.id);
+    if (!user) 
+      return res.status(404).json({message: "User not found"});
+
     const flight = await Flight.create({
       airport_departure_code,
       airport_arrival_code,
       departure_date,
       return_date,
+      user: user._id 
     });
+
+    user.flights.push(flight._id);
+    user.save();
 
     res.status(201).json({
       id: flight._id,
